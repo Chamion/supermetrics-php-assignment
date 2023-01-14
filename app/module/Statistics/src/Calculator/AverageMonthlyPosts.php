@@ -14,6 +14,8 @@ use Statistics\Dto\StatisticsTo;
  */
 class AverageMonthlyPosts extends AbstractCalculator
 {
+    protected const UNITS = 'posts';
+
     private $posts = [];
 
     private function calculateMonths(): array
@@ -68,7 +70,7 @@ class AverageMonthlyPosts extends AbstractCalculator
                 ->setSplitPeriod($month)
                 ->setValue(
                     $this->averageUserPosts($month)
-                );
+                )->setUnits(self::UNITS);
             $stats->addChild($child);
         }
 

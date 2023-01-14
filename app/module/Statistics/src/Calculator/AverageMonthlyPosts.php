@@ -14,13 +14,15 @@ use Statistics\Dto\StatisticsTo;
  */
 class AverageMonthlyPosts extends AbstractCalculator
 {
-    private function calculateMonthsInParamsRange(): array
+    private $posts = [];
+
+    private function calculateMonthlyTimeranges(): array
     {
         $dateCursor = $this->parameters->getStartDate();
-        $end = $this->parameters->getEndDate()->format('F, Y');
+        $end = $this->parameters->getEndDate();
         $months = [];
-        while ($dateCursor->format('F, Y') !== $end) {
-            array_push($months, $dateCursor->format('F, Y'));
+        while ($dateCursor->format('F, Y') !== $end->format('F, Y')) {
+            array_push($months, clone $dateCursor);
             $dateCursor->modify('+1 month');
         }
         array_push($months, $end);
@@ -32,6 +34,7 @@ class AverageMonthlyPosts extends AbstractCalculator
      */
     protected function doAccumulate(SocialPostTo $postTo): void
     {
+        array_push($this->posts, $postTo);
     }
 
     /**
@@ -39,11 +42,13 @@ class AverageMonthlyPosts extends AbstractCalculator
      */
     protected function doCalculate(): StatisticsTo
     {
-
-
         $stats = new StatisticsTo();
-        foreach ($this->calculateMonthsInParamsRange() as $month) {
-            $child = (new StatisticsTo())->setSplitPeriod($month)->setValue(0);
+        foreach ($this->calculateMonthlyTimeranges() as $month) {
+            $child = (new StatisticsTo())
+                ->setSplitPeriod($month->format('F, Y'))
+                ->setValue(
+                    count(array_filter($this->posts, fn ($post) => $post->getDate()->format('F, Y') === $month->format('F, Y')))
+                );
             $stats->addChild($child);
         }
 

@@ -26,6 +26,20 @@ class AverageMonthlyPosts extends AbstractCalculator
      */
     protected function doCalculate(): StatisticsTo
     {
-        return new StatisticsTo();
+        $dateCursor = $this->parameters->getStartDate();
+        $end = $this->parameters->getEndDate()->format('F, Y');
+        $months = [];
+        while ($dateCursor->format('F, Y') !== $end) {
+            array_push($months, $dateCursor->format('F, Y'));
+            $dateCursor->modify('+1 month');
+        }
+        array_push($months, $end);
+
+        $stats = new StatisticsTo();
+        foreach ($months as $month) {
+            $stats->addChild(new StatisticsTo());
+        }
+
+        return $stats;
     }
 }

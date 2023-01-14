@@ -61,7 +61,7 @@ class AverageMonthlyPostsTest extends TestCase
             $result->getChildren()[0]->getValue()
         );
     }
-    public function testFirstPostWithinTimeframeSetsValueToOne(): void
+    public function testCalculatesPostsDividedByActiveUsersForEachMonth(): void
     {
         $start = DateTime::createFromFormat('F, Y', 'December, 2022')->modify('first day of this month')->setTime(0, 0, 0);
         $end = DateTime::createFromFormat('F, Y', 'January, 2023')->modify('last day of this month')->setTime(23, 59, 59);
@@ -71,14 +71,26 @@ class AverageMonthlyPostsTest extends TestCase
             ->setEndDate($end);
         $calculator = new AverageMonthlyPosts();
         $calculator->setParameters($params);
-        $post = (new SocialPostTo())
-            ->setAuthorId('deadbeef')
-            ->setDate(DateTime::createFromFormat('F, Y', 'December, 2022')->modify('first day of this month')->setTime(0, 0, 0));
-        $calculator->accumulateData($post);
+        $calculator->accumulateData(
+            (new SocialPostTo())
+                ->setAuthorId('deadbeef')
+                ->setDate(DateTime::createFromFormat('F, Y', 'December, 2022')->modify('first day of this month')->setTime(0, 0, 0))
+        );
+        $calculator->accumulateData(
+            (new SocialPostTo())
+                ->setAuthorId('deadbeef')
+                ->setDate(DateTime::createFromFormat('F, Y', 'December, 2022')->modify('first day of this month')->setTime(0, 0, 0))
+        );
+        $calculator->accumulateData(
+            (new SocialPostTo())
+                ->setAuthorId('otherid')
+                ->setDate(DateTime::createFromFormat('F, Y', 'December, 2022')->modify('first day of this month')->setTime(0, 0, 0))
+        );
         $result = $calculator->calculate();
-        $this->assertEquals(
-            1,
-            $result->getChildren()[0]->getValue()
+        $this->assertEqualsWithDelta(
+            1.5,
+            $result->getChildren()[0]->getValue(),
+            0.00000001
         );
         $this->assertEquals(
             0,

@@ -34,5 +34,13 @@ class AverageMonthlyPostsTest extends TestCase
             2,
             count($result->getChildren())
         );
+        $this->assertEquals(
+            'December, 2022',
+            $result->getChildren()[0]->getSplitPeriod()
+        );
+        $this->assertEquals(
+            'January, 2023',
+            $result->getChildren()[1]->getSplitPeriod()
+        );
     }
 }

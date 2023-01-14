@@ -36,6 +36,16 @@ class AverageMonthlyPosts extends AbstractCalculator
         return count($uniqueIds);
     }
 
+    private function averageUserPosts(string $month)
+    {
+        $usersAmount = $this->countUsers($month);
+        if ($usersAmount === 0) {
+            return 0;
+        } else {
+            return count($this->posts[$month] ?? []) / $this->countUsers($month);
+        }
+    }
+
     /**
      * @inheritDoc
      */
@@ -54,11 +64,10 @@ class AverageMonthlyPosts extends AbstractCalculator
     {
         $stats = new StatisticsTo();
         foreach ($this->calculateMonths() as $month) {
-            $usersAmount = $this->countUsers($month);
             $child = (new StatisticsTo())
                 ->setSplitPeriod($month)
                 ->setValue(
-                    $usersAmount === 0 ? 0 : count($this->posts[$month] ?? []) / $this->countUsers($month)
+                    $this->averageUserPosts($month)
                 );
             $stats->addChild($child);
         }

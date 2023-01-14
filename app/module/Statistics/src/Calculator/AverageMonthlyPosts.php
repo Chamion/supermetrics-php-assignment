@@ -43,7 +43,8 @@ class AverageMonthlyPosts extends AbstractCalculator
 
         $stats = new StatisticsTo();
         foreach ($this->calculateMonthsInParamsRange() as $month) {
-            $stats->addChild(new StatisticsTo());
+            $child = (new StatisticsTo())->setSplitPeriod($month);
+            $stats->addChild($child);
         }
 
         return $stats;

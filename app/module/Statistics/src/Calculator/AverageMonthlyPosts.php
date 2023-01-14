@@ -29,12 +29,19 @@ class AverageMonthlyPosts extends AbstractCalculator
         return $months;
     }
 
+    private function countUsers(string $month)
+    {
+        $uniqueIds = [];
+        foreach ($this->posts[$month] ?? [] as $post) $uniqueIds[$post->getAuthorId()] = true;
+        return count($uniqueIds);
+    }
+
     /**
      * @inheritDoc
      */
     protected function doAccumulate(SocialPostTo $postTo): void
     {
-        if ($postTo->getDate() === null) return;
+        if ($postTo->getDate() === null || $postTo->getAuthorId() === null) return;
         $month = $postTo->getDate()->format('F, Y');
         if (!array_key_exists($month, $this->posts)) $this->posts[$month] = [];
         array_push($this->posts[$month], $postTo);
@@ -47,10 +54,11 @@ class AverageMonthlyPosts extends AbstractCalculator
     {
         $stats = new StatisticsTo();
         foreach ($this->calculateMonths() as $month) {
+            $usersAmount = $this->countUsers($month);
             $child = (new StatisticsTo())
                 ->setSplitPeriod($month)
                 ->setValue(
-                    count($this->posts[$month] ?? [])
+                    $usersAmount === 0 ? 0 : count($this->posts[$month] ?? []) / $this->countUsers($month)
                 );
             $stats->addChild($child);
         }
